@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fthlabz | Doktor Paneli</title>
+    <style>
+        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .admin-card { background: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 400px; }
+        h2 { color: #38bdf8; text-align: center; }
+        textarea { width: 100%; height: 100px; border-radius: 10px; border: none; padding: 10px; box-sizing: border-box; margin: 15px 0; font-size: 1rem; }
+        button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        button:hover { background: #7dd3fc; }
+        #status { margin-top: 15px; text-align: center; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <h2>Mesajı Güncelle</h2>
+    <textarea id="newMessage" placeholder="Danışanlarınıza yeni mesajınızı yazın..."></textarea>
+    <button onclick="guncelle()">YAYINLA</button>
+    <div id="status"></div>
+</div>
+
+<script>
+    // --- AYARLAR ---
+    const TOKEN = "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";
+    const REPO = "fthlabz/psikolog"; // Kendi kullanıcı adınla değiştir
+    const PATH = "mesaj.json";
+
+    async function guncelle() {
+        const mesaj = document.getElementById('newMessage').value;
+        const status = document.getElementById('status');
+        if(!mesaj) return alert("Mesaj boş olamaz!");
+
+        status.innerText = "Güncelleniyor...";
+
+        try {
+            // 1. Önce dosyanın mevcut SHA değerini almamız lazım (GitHub kuralı)
+            const getRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${PATH}`, {
+                headers: { "Authorization": `token ${TOKEN}` }
+            });
+            const fileData = await getRes.json();
+            const sha = fileData.sha;
+
+            // 2. Yeni içeriği hazırla ve Base64'e çevir
+            const content = btoa(unescape(encodeURIComponent(JSON.stringify({ "mesaj": mesaj }))));
+
+            // 3. GitHub'a geri gönder
+            const putRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${PATH}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `token ${TOKEN}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: "Doktor mesajı güncelledi",
+                    content: content,
+                    sha: sha
+                })
+            });
+
+            if(putRes.ok) {
+                status.style.color = "#4ade80";
+                status.innerText = "✅ Mesaj başarıyla yayınlandı!";
+                document.getElementById('newMessage').value = "";
+            } else {
+                throw new Error("Hata oluştu.");
+            }
+        } catch (err) {
+            status.style.color = "#f87171";
+            status.innerText = "❌ Hata: Yetki veya bağlantı sorunu.";
+        }
+    }
+</script>
+
+</body>
+</html>
