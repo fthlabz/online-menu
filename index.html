@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fthlabz | Psikolojik Danışmanlık</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="header">
+        <h1>FTHLABZ</h1>
+        <h2 id="dr-name">Dr. [Doktorunuzun İsmi]</h2>
+    </div>
+
+    <div class="visual-container">
+        <div class="main-spiral"></div>
+        <div class="sub-spiral"></div>
+        <div class="pulse-circle"></div>
+    </div>
+
+    <div id="message-balloon" class="balloon">
+        <div class="balloon-content">
+            <span class="quote-icon">“</span>
+            <p id="daily-text">Yükleniyor...</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadDailyMessage() {
+            try {
+                // Ön bellek temizleyici (Timestamp) - Her seferinde taze veri!
+                const timestamp = new Date().getTime();
+                const response = await fetch('mesaj.json?v=' + timestamp);
+                const data = await response.json();
+                
+                document.getElementById('daily-text').innerText = data.mesaj;
+                
+                // Balonu 1.5 saniye sonra süzülerek getir (Hipnotik etkiden sonra)
+                setTimeout(() => {
+                    document.getElementById('message-balloon').classList.add('active');
+                }, 1500);
+            } catch (error) {
+                document.getElementById('daily-text').innerText = "Huzur dolu bir gün dileriz.";
+            }
+        }
+        loadDailyMessage();
+    </script>
+</body>
+</html>
